@@ -1,5 +1,5 @@
 import { Component, Input, Self } from '@angular/core';
-import { ControlValueAccessor, FormControl, NgControl } from '@angular/forms';
+import { ControlValueAccessor, UntypedFormControl, NgControl } from '@angular/forms';
 import { BsDatepickerConfig } from 'ngx-bootstrap/datepicker';
 
 @Component({
@@ -26,7 +26,7 @@ export class DatePickerComponent implements ControlValueAccessor {
 
   registerOnTouched(fn: any): void {}
 
-  get control(): FormControl {
-    return this.ngControl.control as FormControl;
+  get control(): UntypedFormControl {
+    return this.ngControl.control as UntypedFormControl;
   }
 }

@@ -2,9 +2,9 @@
   <h2 class="text-center text-primary">Sign up</h2>
   <hr />
 
-  <div class="mb-3">
+  <div class="d-flex mb-3">
     <label style="margin-right: 10px">I am a: </label>
-    <div class="form-check form-check-inline">
+    <label for="male" class="form-check-label">
       <input
         type="radio"
         class="form-check-input"
@@ -12,18 +12,18 @@
         formControlName="gender"
         id="male"
       />
-      <label for="male" class="form-check-label">Male</label>
-    </div>
-    <div class="form-check form-check-inline">
+      Male
+    </label>
+    <label for="female" class="form-check-label">
       <input
         type="radio"
-        class="form-check-input"
+        class="form-check-input ms-3"
         value="female"
         formControlName="gender"
         id="female"
       />
-      <label for="female" class="form-check-label">Female</label>
-    </div>
+      Female
+    </label>
   </div>
   <app-text-input
     [formControl]="$any(registerForm.controls['username'])"
@@ -57,9 +57,9 @@
     [type]="'password'"
   ></app-text-input>
 
-  <div class="form-group text-center">
-    <button class="btn btn-success mr-2" type="submit">Register</button>
-    <button class="btn btn-light mr-2" (click)="cancel()">Cancel</button>
+  <div class="text-center">
+    <button class="btn btn-success me-2" type="submit">Register</button>
+    <button class="btn btn-light me-2" (click)="cancel()">Cancel</button>
   </div>
 </form>
 
