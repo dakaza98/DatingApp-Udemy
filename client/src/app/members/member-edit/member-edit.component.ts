@@ -13,13 +13,13 @@ import { MembersService } from '../../_services/members.service';
   styleUrls: ['./member-edit.component.css'],
 })
 export class MemberEditComponent implements OnInit {
-  @ViewChild('editForm') editForm: NgForm;
-  member: Member;
-  user: User;
+  @ViewChild('editForm') editForm: NgForm | undefined;
+  member: Member | undefined;
+  user: User | null = null;
   @HostListener('window:beforeunload', ['$event']) unloadNotification(
     $event: any
   ) {
-    if (this.editForm.dirty) {
+    if (this.editForm?.dirty) {
       $event.returnValue = true;
     }
   }
@@ -38,15 +38,19 @@ export class MemberEditComponent implements OnInit {
   }
 
   loadMember() {
+    if (!this.user) return;
+
     this.memberService.getMember(this.user.username).subscribe((member) => {
       this.member = member;
     });
   }
 
   updateMember() {
+    if (!this.member) return;
+
     this.memberService.updateMember(this.member).subscribe(() => {
       this.toastr.success('Profile updated successfully');
-      this.editForm.reset(this.member);
+      this.editForm?.reset(this.member);
     });
   }
 }

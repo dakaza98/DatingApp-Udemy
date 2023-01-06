@@ -4,8 +4,9 @@ import {
   HttpHandler,
   HttpEvent,
   HttpInterceptor,
+  HttpErrorResponse,
 } from '@angular/common/http';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable } from 'rxjs';
 import { NavigationExtras, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
@@ -18,43 +19,41 @@ export class ErrorInterceptor implements HttpInterceptor {
     next: HttpHandler
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
-      catchError((error) => {
-        if (error) {
-          switch (error.status) {
-            case 400:
-              if (error.error.errors) {
-                const modalStateErrors = [];
-                for (const key in error.error.errors) {
-                  if (error.error.errors[key]) {
-                    modalStateErrors.push(error.error.errors[key]);
-                  }
+      catchError((error: HttpErrorResponse) => {
+        switch (error.status) {
+          case 400:
+            if (error.error.errors) {
+              const modalStateErrors = [];
+              for (const key in error.error.errors) {
+                if (error.error.errors[key]) {
+                  modalStateErrors.push(error.error.errors[key]);
                 }
-
-                throw modalStateErrors.flat();
-              } else {
-                this.toastr.error(error.statusText, error.status);
               }
-              break;
-            case 401:
-              this.toastr.error(error.statusText, error.status);
-              break;
-            case 404:
-              this.router.navigateByUrl('/not-found');
-              break;
-            case 500:
-              const navigationExtras: NavigationExtras = {
-                state: { error: error.error },
-              };
-              this.router.navigateByUrl('/server-error', navigationExtras);
-              break;
-            default:
-              this.toastr.error('Something unexpected when wrong');
-              console.log(error);
-              break;
-          }
 
-          return throwError(error);
+              throw modalStateErrors.flat();
+            } else {
+              this.toastr.error(error.statusText, error.status.toString());
+            }
+            break;
+          case 401:
+            this.toastr.error('Unauthorized', error.status.toString());
+            break;
+          case 404:
+            this.router.navigateByUrl('/not-found');
+            break;
+          case 500:
+            const navigationExtras: NavigationExtras = {
+              state: { error: error.error },
+            };
+            this.router.navigateByUrl('/server-error', navigationExtras);
+            break;
+          default:
+            this.toastr.error('Something unexpected when wrong');
+            console.log(error);
+            break;
         }
+
+        throw error;
       })
     );
   }

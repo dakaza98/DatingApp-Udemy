@@ -2,7 +2,6 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import {
   AbstractControl,
   UntypedFormBuilder,
-  FormControl,
   UntypedFormGroup,
   ValidatorFn,
   Validators,
@@ -50,7 +49,7 @@ export class RegisterComponent implements OnInit {
       ],
     });
 
-    this.registerForm.controls.password.valueChanges.subscribe({
+    this.registerForm.controls['password'].valueChanges.subscribe({
       next: () =>
         this.registerForm.controls['confirmPassword'].updateValueAndValidity(),
     });
@@ -58,7 +57,7 @@ export class RegisterComponent implements OnInit {
 
   matchValues(matchTo: string): ValidatorFn {
     return (control: AbstractControl) => {
-      return control.value === control.parent?.get(matchTo).value
+      return control.value === control.parent?.get(matchTo)?.value
         ? null
         : { notMatching: true };
     };
