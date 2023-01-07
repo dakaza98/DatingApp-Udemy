@@ -17,6 +17,7 @@ namespace API.Controllers
         private readonly DataContext _context;
         private readonly ITokenService _tokenService;
         private readonly IMapper _mapper;
+
         public AccountController(DataContext context, ITokenService tokenService, IMapper mapper)
         {
             _mapper = mapper;
@@ -27,7 +28,8 @@ namespace API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<UserDto>> Register(RegisterDto registerDto)
         {
-            if (await UserExists(registerDto.Username)) return BadRequest("Username is taken");
+            if (await UserExists(registerDto.Username))
+                return BadRequest("Username is taken");
 
             var user = _mapper.Map<AppUser>(registerDto);
 
@@ -44,7 +46,8 @@ namespace API.Controllers
             {
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
-                KnownAs = user.KnownAs
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
             };
         }
 
@@ -53,10 +56,10 @@ namespace API.Controllers
         {
             var user = await _context.Users
                 .Include(p => p.Photos)
-                .SingleOrDefaultAsync(x => x.UserName == loginDTO.Username
-            );
+                .SingleOrDefaultAsync(x => x.UserName == loginDTO.Username);
 
-            if (user == null) return Unauthorized("Invalid username");
+            if (user == null)
+                return Unauthorized("Invalid username");
 
             using var hmac = new HMACSHA512(user.PasswordSalt);
 
@@ -64,7 +67,8 @@ namespace API.Controllers
 
             for (int i = 0; i < computedHash.Length; i++)
             {
-                if (computedHash[i] != user.PasswordHash[i]) return Unauthorized("Invalid password");
+                if (computedHash[i] != user.PasswordHash[i])
+                    return Unauthorized("Invalid password");
             }
 
             return new UserDto
@@ -72,7 +76,8 @@ namespace API.Controllers
                 Username = user.UserName,
                 Token = _tokenService.CreateToken(user),
                 PhotoUrl = user.Photos.FirstOrDefault(x => x.IsMain)?.Url,
-                KnownAs = user.KnownAs
+                KnownAs = user.KnownAs,
+                Gender = user.Gender
             };
         }
 

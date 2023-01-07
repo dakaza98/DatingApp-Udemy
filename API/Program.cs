@@ -20,8 +20,9 @@ app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 
-app.UseCors(policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200"));
-
+app.UseCors(
+    policy => policy.AllowAnyHeader().AllowAnyMethod().WithOrigins("https://localhost:4200")
+);
 
 app.UseRouting();
 app.UseAuthentication();

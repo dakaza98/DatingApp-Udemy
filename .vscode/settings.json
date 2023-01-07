@@ -1,9 +1,8 @@
 {
-    "files.exclude": {
-        "**/bin": true,
-        "**/obj": true
-    },
-    "csharpextensions.privateMemberPrefix": "_",
-    "csharpextensions.useThisForCtorAssignments": false,
-    "angular.enable-strict-mode-prompt": false
+  "files.exclude": {
+    "**/bin": true,
+    "**/obj": true
+  },
+  "csharpextensions.privateMemberPrefix": "_",
+  "csharpextensions.useThisForCtorAssignments": false
 }

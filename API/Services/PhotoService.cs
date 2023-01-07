@@ -11,6 +11,7 @@ namespace API.Services
     public class PhotoService : IPhotoService
     {
         private readonly Cloudinary _cloudinary;
+
         public PhotoService(IOptions<CloudinarySettings> config)
         {
             var account = new Account(
@@ -21,6 +22,7 @@ namespace API.Services
 
             _cloudinary = new Cloudinary(account);
         }
+
         public async Task<ImageUploadResult> AddPhotoAsync(IFormFile file)
         {
             var uploadResult = new ImageUploadResult();
@@ -32,8 +34,10 @@ namespace API.Services
                 {
                     File = new FileDescription(file.FileName, stream),
                     Transformation = new Transformation()
-                        .Height(500).Width(500)
-                        .Crop("fill").Gravity("face"),
+                        .Height(500)
+                        .Width(500)
+                        .Crop("fill")
+                        .Gravity("face"),
                     Folder = "da-net7"
                 };
 
