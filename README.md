@@ -11,6 +11,7 @@
 
 ### Frontend
 1. [Install nodejs (> 16.10)](https://nodejs.org/en/)
+2. Install angular cli 14 `npm install -g @angular/cli@14`
 3. Run `npm i`
 4. Install the https certificate `StudentAssets/generateTrustedSSL/server.crt`. On WSL copy the file to windows
 
