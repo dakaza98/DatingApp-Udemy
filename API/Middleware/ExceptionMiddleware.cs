@@ -32,7 +32,6 @@ namespace API.Middleware
         {
             try
             {
-                Console.WriteLine("hehfef");
                 await _next(context);
             }
             catch (Exception ex)
