@@ -11,21 +11,14 @@ namespace API.SignalR;
 [Authorize]
 public class MessageHub : Hub
 {
-    private readonly IMessageRepository _messageRepository;
-    private readonly IUserRepository _userRepository;
     private readonly IMapper _mapper;
     private readonly IHubContext<PresenceHub> _presenceHub;
+    private readonly IUnitOfWork _uow;
 
-    public MessageHub(
-        IMessageRepository messageRepository,
-        IUserRepository userRepository,
-        IMapper mapper,
-        IHubContext<PresenceHub> presenceHub
-    )
+    public MessageHub(IUnitOfWork uow, IMapper mapper, IHubContext<PresenceHub> presenceHub)
     {
+        _uow = uow;
         _mapper = mapper;
-        _userRepository = userRepository;
-        _messageRepository = messageRepository;
         _presenceHub = presenceHub;
     }
 
@@ -39,10 +32,13 @@ public class MessageHub : Hub
 
         await Clients.Group(groupName).SendAsync("UpdatedGroup", group);
 
-        var messages = await _messageRepository.GetMessageThread(
+        var messages = await _uow.MessageRepository.GetMessageThread(
             Context.User.GetUsername(),
             otherUser
         );
+
+        if (_uow.HasChanges())
+            await _uow.Complete();
 
         await Clients.Caller.SendAsync("ReceiveMessageThread", messages);
     }
@@ -61,8 +57,8 @@ public class MessageHub : Hub
         if (username == createMessageDto.RecipientUsername.ToLower())
             throw new HubException("You cannot send messages to yourself");
 
-        var sender = await _userRepository.GetUserbyUsernameAsync(username);
-        var recipient = await _userRepository.GetUserbyUsernameAsync(
+        var sender = await _uow.UserRepository.GetUserbyUsernameAsync(username);
+        var recipient = await _uow.UserRepository.GetUserbyUsernameAsync(
             createMessageDto.RecipientUsername
         );
 
@@ -82,7 +78,7 @@ public class MessageHub : Hub
 
         var groupName = GetGroupName(sender.UserName, recipient.UserName);
 
-        var group = await _messageRepository.GetMessageGroup(groupName);
+        var group = await _uow.MessageRepository.GetMessageGroup(groupName);
 
         if (group.Connections.Any(x => x.Username == recipient.UserName))
         {
@@ -102,9 +98,9 @@ public class MessageHub : Hub
             }
         }
 
-        _messageRepository.AddMessage(message);
+        _uow.MessageRepository.AddMessage(message);
 
-        if (await _messageRepository.SaveAllAsync())
+        if (await _uow.Complete())
         {
             await Clients
                 .Group(groupName)
@@ -120,18 +116,18 @@ public class MessageHub : Hub
 
     private async Task<Group> AddToGroup(string groupName)
     {
-        var group = await _messageRepository.GetMessageGroup(groupName);
+        var group = await _uow.MessageRepository.GetMessageGroup(groupName);
         var connection = new Connection(Context.ConnectionId, Context.User.GetUsername());
 
         if (group == null)
         {
             group = new Group(groupName);
-            _messageRepository.AddGroup(group);
+            _uow.MessageRepository.AddGroup(group);
         }
 
         group.Connections.Add(connection);
 
-        if (await _messageRepository.SaveAllAsync())
+        if (await _uow.Complete())
             return group;
 
         throw new HubException("Failed to add to group");
@@ -139,12 +135,12 @@ public class MessageHub : Hub
 
     private async Task<Group> RemoveFromMessageGroup()
     {
-        var group = await _messageRepository.GetGroupForConnection(Context.ConnectionId);
+        var group = await _uow.MessageRepository.GetGroupForConnection(Context.ConnectionId);
         var connection = group.Connections.FirstOrDefault(
             x => x.ConnectionId == Context.ConnectionId
         );
-        _messageRepository.RemoveConnection(connection);
-        if (await _messageRepository.SaveAllAsync())
+        _uow.MessageRepository.RemoveConnection(connection);
+        if (await _uow.Complete())
             return group;
 
         throw new HubException("Failed to remove from group");
