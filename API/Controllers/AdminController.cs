@@ -1,4 +1,6 @@
+using API.DTOs;
 using API.Entities;
+using API.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +11,11 @@ namespace API.Controllers;
 public class AdminController : BaseApiController
 {
     private readonly UserManager<AppUser> _userManager;
+    private readonly IUnitOfWork _uow;
 
-    public AdminController(UserManager<AppUser> userManager)
+    public AdminController(UserManager<AppUser> userManager, IUnitOfWork uow)
     {
+        _uow = uow;
         _userManager = userManager;
     }
 
@@ -66,8 +70,46 @@ public class AdminController : BaseApiController
 
     [Authorize(Policy = "ModeratePhotoRole")]
     [HttpGet("photos-to-moderate")]
-    public ActionResult GetPhotosForModeration()
+    public async Task<ActionResult<PhotoForApprovalDTO>> GetPhotosForModeration()
     {
-        return Ok("Admins or moderators can see this");
+        return Ok(await _uow.PhotoRepository.GetUnapprovedPhotos());
+    }
+
+    [Authorize(Policy = "ModeratePhotoRole")]
+    [HttpPut("approve-photo/{photoId}")]
+    public async Task<ActionResult<PhotoForApprovalDTO>> ApprovePhoto(int photoId)
+    {
+        var photo = await _uow.PhotoRepository.GetPhotoById(photoId);
+        var user = await _uow.UserRepository.GetUserFromPhoto(photo);
+
+        if (photo == null)
+            return NotFound();
+
+        if (!user.Photos.AsQueryable().IgnoreQueryFilters().Where(photo => photo.IsMain).Any())
+            photo.IsMain = true;
+
+        photo.IsApproved = true;
+
+        if (await _uow.Complete())
+            return NoContent();
+
+        return BadRequest("Failed to approve photo");
+    }
+
+    [Authorize(Policy = "ModeratePhotoRole")]
+    [HttpDelete("reject-photo/{photoId}")]
+    public async Task<ActionResult<PhotoForApprovalDTO>> RejectPhoto(int photoId)
+    {
+        var photo = await _uow.PhotoRepository.GetPhotoById(photoId);
+
+        if (photo == null)
+            return NotFound();
+
+        _uow.PhotoRepository.RemovePhoto(photo);
+
+        if (await _uow.Complete())
+            return NoContent();
+
+        return BadRequest("Faild to reject photo");
     }
 }

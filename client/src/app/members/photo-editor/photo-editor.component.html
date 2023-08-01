@@ -1,10 +1,23 @@
 <div class="row mb-3" *ngIf="member">
   <div class="col-2 mb-1" *ngFor="let photo of member.photos">
-    <img src="{{ photo.url }}" alt="photo of user" class="img-thumbnail mb-1" />
+    <div class="position-relative">
+      <img
+        src="{{ photo.url }}"
+        alt="photo of user"
+        class="img-thumbnail mb-1"
+        [ngClass]="{ 'opacity-25': !photo.isApproved }"
+      />
+      <p
+        *ngIf="!photo.isApproved"
+        class="text-danger position-absolute bottom-0 text-end me-2 fw-bold"
+      >
+        Awaiting approval
+      </p>
+    </div>
     <div class="text-center">
       <button
         class="btn btn-sm"
-        [disabled]="photo.isMain"
+        [disabled]="photo.isMain || !photo.isApproved"
         (click)="setMainPhoto(photo)"
         [ngClass]="photo.isMain ? 'btn-success active' : 'btn-outline-success'"
       >

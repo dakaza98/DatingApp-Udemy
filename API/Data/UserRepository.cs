@@ -16,13 +16,16 @@ namespace API.Data
         public UserRepository(DataContext context, IMapper mapper)
         {
             _mapper = mapper;
-            this._context = context;
+            _context = context;
         }
 
-        public async Task<MemberDto> GetMemberAsync(string username)
+        public async Task<MemberDto> GetMemberAsync(string username, string currentUsername)
         {
-            return await _context.Users
-                .Where(x => x.UserName == username)
+            var query = _context.Users.Where(x => x.UserName == username);
+            if (currentUsername == username)
+                query = query.IgnoreQueryFilters();
+
+            return await query
                 .ProjectTo<MemberDto>(_mapper.ConfigurationProvider)
                 .SingleOrDefaultAsync();
         }
@@ -61,6 +64,14 @@ namespace API.Data
             return await _context.Users
                 .Include(p => p.Photos)
                 .SingleOrDefaultAsync(x => x.UserName == username);
+        }
+
+        public async Task<AppUser> GetUserFromPhoto(Photo photo)
+        {
+            return await _context.Users
+                .Include((u) => u.Photos)
+                .Where(u => u.Id == photo.AppUserId)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<string> GetUserGender(string username)

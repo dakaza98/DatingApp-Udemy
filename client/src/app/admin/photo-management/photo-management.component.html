@@ -1,1 +1,19 @@
-<p>photo-management works!</p>
+<div class="row">
+  <h4 *ngIf="!nonApprovedPhotos.length">No photos to approve</h4>
+  <div *ngFor="let photo of nonApprovedPhotos" class="col-2">
+    <h4>{{ photo.username }}</h4>
+    <img src="{{ photo.url }}" class="img-thumbnail" />
+    <div class="row mt-2">
+      <div class="col-6">
+        <button class="btn btn-success" (click)="approvePhoto(photo.id)">
+          Approve
+        </button>
+      </div>
+      <div class="col-6">
+        <button class="btn btn-danger" (click)="rejectPhoto(photo.id)">
+          Reject
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
