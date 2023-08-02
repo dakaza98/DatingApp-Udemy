@@ -1,5 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HubConnection, HubConnectionBuilder } from '@microsoft/signalr';
+import {
+  HttpTransportType,
+  HubConnection,
+  HubConnectionBuilder,
+} from '@microsoft/signalr';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from 'src/environments/environment';
 import { User } from '../_models/user';
@@ -21,6 +25,7 @@ export class PrecenceService {
     this.hubConnection = new HubConnectionBuilder()
       .withUrl(this.hubUrl + 'presence', {
         accessTokenFactory: () => user.token,
+        transport: HttpTransportType.WebSockets,
       })
       .withAutomaticReconnect()
       .build();
@@ -36,14 +41,10 @@ export class PrecenceService {
     });
 
     this.hubConnection.on('UserIsOffline', (username) => {
-      this.onlineUsers$
-        .pipe(take(1))
-        .subscribe({
-          next: (usernames) =>
-            this.onlineUsersSource.next(
-              usernames.filter((x) => x !== username)
-            ),
-        });
+      this.onlineUsers$.pipe(take(1)).subscribe({
+        next: (usernames) =>
+          this.onlineUsersSource.next(usernames.filter((x) => x !== username)),
+      });
     });
 
     this.hubConnection.on('GetOnlineUsers', (usernames) => {
